@@ -63,6 +63,22 @@ body {
   color: oklch(82.8% 0.189 84.429);
 }
 
+.canvas-container {
+  width: 100% !important; /* Let container determine size */
+  height: 100% !important;
+}
+
+canvas {
+  display: block; /* Removes whitespace under canvas */
+  width: 100% !important; /* Fill container */
+  height: 100% !important;
+  image-rendering: -moz-crisp-edges; /* Firefox */
+  image-rendering: -webkit-optimize-contrast; /* Safari */
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor; /* IE */
+}
+
 .heart {
   background-color: oklch(44% 0.2 270);
   width: 100px;

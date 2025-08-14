@@ -72,15 +72,22 @@ function Home() {
 
   // Initialize Fabric.js canvas
   useEffect(() => {
-    if (canvasRef.current) {
-      fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
-        backgroundColor: "#1f2937",
-        selectionColor: "rgba(236, 72, 153, 0.3)",
-        selectionBorderColor: "#EC4899",
-        selectionLineWidth: 2,
-        width: 1000,
-        height: 1000,
-      });
+  if (canvasRef.current) {
+    // Set higher resolution (e.g., 2x display size)
+    const scale = window.devicePixelRatio || 1;
+    canvasRef.current.width = 1200 * scale;
+    canvasRef.current.height = 800 * scale;
+
+    fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
+      backgroundColor: "#1f2937",
+      selectionColor: "rgba(236, 72, 153, 0.3)",
+      selectionBorderColor: "#EC4899",
+      selectionLineWidth: 2,
+      width: 1200, // Logical width
+      height: 800, // Logical height
+      enableRetinaScaling: true, // Enable retina/high-DPI support
+    });
+
 
       // Event listeners
       fabricCanvasRef.current.on(
@@ -107,49 +114,11 @@ function Home() {
         saveToHistory();
       });
 
-      // Add initial shapes
-      addInitialShapes();
-
       return () => {
         fabricCanvasRef.current?.dispose();
       };
     }
   }, []);
-
-  const addInitialShapes = () => {
-    if (!fabricCanvasRef.current) return;
-
-    // Add a heart shape
-    const heart = new fabric.Path(
-      "M10 6 Q10 0 15 0 T20 6 Q20 10 10 16 Q0 10 0 6 Q0 0 5 0 T10 6",
-      {
-        left: 100,
-        top: 100,
-        fill: "#EC4899",
-        stroke: "#FFFFFF",
-        strokeWidth: 2,
-        opacity: 1,
-        selectable: true,
-      }
-    );
-
-    // Add a rectangle
-    const rect = new fabric.Rect({
-      left: 50,
-      top: 50,
-      width: 100,
-      height: 80,
-      fill: "rgba(99, 102, 241, 0.5)",
-      stroke: "#FFFFFF",
-      strokeWidth: 2,
-      opacity: 1,
-      selectable: true,
-    });
-
-    fabricCanvasRef.current.add(heart, rect);
-    fabricCanvasRef.current.renderAll();
-    saveToHistory();
-  };
 
   const saveToHistory = () => {
     if (!fabricCanvasRef.current) return;
