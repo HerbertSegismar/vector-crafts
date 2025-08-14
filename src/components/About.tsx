@@ -97,7 +97,7 @@ const About = () => {
           <h1 className="hero-title text-amber-100 text-5xl md:text-6xl font-bold text-gray-900 mb-4">
             Crafting Perfect Vectors
           </h1>
-          <p className="hero-subtitle text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
             We transform ideas into scalable, beautiful vector graphics for
             designers and developers worldwide.
           </p>
@@ -112,13 +112,13 @@ const About = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Our Story
               </h2>
-              <p className="text-lg text-gray-600 mb-4">
+              <p className="text-lg text-gray-300 mb-4">
                 Founded in 2020, VectorCraft began as a small team of vector art
                 enthusiasts. We noticed a gap in the market for high-quality,
                 customizable vector assets that don't sacrifice quality for
                 scalability.
               </p>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-300">
                 Today, we serve thousands of creative professionals with our
                 unique vector generation tools and extensive library of premium
                 assets.
@@ -151,12 +151,12 @@ const About = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Our Technology
               </h2>
-              <p className="text-lg text-gray-600 mb-4">
+              <p className="text-lg text-gray-300 mb-4">
                 Our proprietary vector generation engine uses advanced
                 algorithms to create perfectly scalable graphics that maintain
                 crispness at any size.
               </p>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-300">
                 Whether you need simple icons or complex illustrations, our
                 tools ensure pixel-perfect results every time.
               </p>

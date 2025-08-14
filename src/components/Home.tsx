@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
-import Heart from "../icons/Heart"
+import Heart from "../icons/Heart";
 import Square from "../icons/Square";
 import Triangle from "../icons/Triangle";
 import Circle from "../icons/Circle";
@@ -12,10 +12,26 @@ import Download from "../icons/Download";
 import PenTool from "../icons/PenTool";
 import Layers from "../icons/Layers";
 
-
 function Home() {
   gsap.registerPlugin(useGSAP);
-  const container = useRef(null);
+
+  const [formValues, setFormValues] = useState({
+    fillColor: "#EC4899",
+    strokeWidth: "2",
+    strokeStyle: "Solid",
+    opacity: "100",
+  });
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const [activeTool, setActiveTool] = useState("select");
   const [showImportModal, setShowImportModal] = useState(false);
   const [layers, setLayers] = useState([
@@ -28,21 +44,20 @@ function Home() {
       locked: false,
     },
   ]);
+  const [showProperties, setShowProperties] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Animation for the demo heart
-  useGSAP(() => {
-    gsap.from("#demo-heart", {
-      scale: 0.5,
-      opacity: 0,
-      duration: 1,
-      ease: "back.out(1.7)",
-    });
-  }, [container]);
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-  const handleToolClick = (tool: string) => {
-    setActiveTool(tool);
-    // Add tool-specific functionality here
-  };
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  const handleToolClick = (tool: string) => setActiveTool(tool);
 
   const addShape = (shapeType: string) => {
     const newLayer = {
@@ -58,160 +73,108 @@ function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 text-gray-800 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-300/5 text-gray-100 overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="bg-white shadow-sm py-2 px-4 flex items-center justify-between">
+      <header className="bg-gray-900/80 backdrop-blur-lg py-3 px-6 flex items-center justify-between border-b border-gray-800">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="flex items-center"
         >
-          <Heart className="w-8 h-8 text-red-500 mr-2" />
-          <h1 className="text-xl font-bold text-gray-800">Vector Crafts</h1>
+          <Heart className="w-8 h-8 text-pink-500 mr-2" />
+          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">
+            Vector Crafts
+          </h1>
         </motion.div>
 
-        <div className="flex space-x-4">
-          <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+        <div className="flex space-x-3">
+          <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700/80 rounded-lg transition-all border border-gray-700 text-sm font-medium">
             Save
           </button>
           <button
-            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
             onClick={() => setShowImportModal(true)}
+            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 hover:opacity-90 rounded-lg transition-all text-white text-sm font-medium"
           >
             Import
           </button>
-          <button className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition flex items-center">
-            <Download className="w-4 h-4 mr-1" />
+          <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700/80 rounded-lg transition-all border border-gray-700 flex items-center text-sm font-medium">
+            <Download className="w-4 h-4 mr-2" />
             Export
           </button>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Tools Panel */}
-        <div className="w-16 bg-white shadow-md py-4 flex flex-col items-center space-y-6">
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "select"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => handleToolClick("select")}
-            title="Selection Tool"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+        {/* Tools Panel - Now horizontal on mobile */}
+        <div className="w-full md:w-14 bg-gray-900/80 backdrop-blur-lg md:border-r border-b md:border-b-0 border-gray-800 py-2 md:py-4 flex md:flex-col items-center justify-center md:justify-start space-x-2 md:space-x-0 md:space-y-5">
+          {[
+            {
+              tool: "select",
+              icon: (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                  />
+                </svg>
+              ),
+            },
+            { tool: "pen", icon: <PenTool className="h-5 w-5" /> },
+            null, // Divider
+            { tool: "rectangle", icon: <Square className="h-5 w-5" /> },
+            { tool: "circle", icon: <Circle className="h-5 w-5" /> },
+            { tool: "triangle", icon: <Triangle className="h-5 w-5" /> },
+            {
+              tool: "heart",
+              icon: <Heart className="h-5 w-5 text-pink-500" />,
+            },
+          ].map((item, index) =>
+            item ? (
+              <button
+                key={item.tool}
+                className={`p-2 rounded-lg transition-all ${
+                  activeTool === item.tool
+                    ? "bg-pink-500/10 text-pink-400 ring-1 ring-pink-500/30"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/50"
+                }`}
+                onClick={() => {
+                  handleToolClick(item.tool);
+                  if (item.tool !== "select" && item.tool !== "pen") {
+                    addShape(item.tool);
+                  }
+                }}
+                title={item.tool.charAt(0).toUpperCase() + item.tool.slice(1)}
+              >
+                {item.icon}
+              </button>
+            ) : (
+              <div
+                key={`divider-${index}`}
+                className="border-t border-gray-800 w-6 mx-auto hidden md:block"
               />
-            </svg>
-          </button>
-
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "pen"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => handleToolClick("pen")}
-            title="Pen Tool"
-          >
-            <PenTool className="h-6 w-6" />
-          </button>
-
-          <div className="border-t border-gray-200 w-8 mx-auto"></div>
-
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "rectangle"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => {
-              handleToolClick("rectangle");
-              addShape("rectangle");
-            }}
-            title="Rectangle"
-          >
-            <Square className="h-6 w-6" />
-          </button>
-
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "circle"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => {
-              handleToolClick("circle");
-              addShape("circle");
-            }}
-            title="Circle"
-          >
-            <Circle className="h-6 w-6" />
-          </button>
-
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "triangle"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => {
-              handleToolClick("triangle");
-              addShape("triangle");
-            }}
-            title="Triangle"
-          >
-            <Triangle className="h-6 w-6" />
-          </button>
-
-          <button
-            className={`p-2 rounded-lg ${
-              activeTool === "heart"
-                ? "bg-blue-100 text-blue-600"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => {
-              handleToolClick("heart");
-              addShape("heart");
-            }}
-            title="Heart"
-          >
-            <Heart className="h-6 w-6 text-red-500" />
-          </button>
+            )
+          )}
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 bg-gray-50 border-l border-r border-gray-200 overflow-auto flex items-center justify-center p-8">
-          <div className="bg-white shadow-lg rounded-lg w-full h-full max-w-4xl max-h-[80vh] relative overflow-hidden border border-gray-200">
-            {/* This would be your actual canvas component in a real app */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
-                id="demo-heart"
-                whileHover={{ scale: 1.1 }}
-                className="cursor-pointer"
-              >
-                <Heart className="w-32 h-32 text-red-500" />
-              </motion.div>
-            </div>
-
-            {/* Demo shapes that would be created by tools */}
+        <div className="flex-1 bg-gradient-to-br from-gray-950 to-gray-900 overflow-auto flex items-center justify-center p-4 relative">
+          <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl w-full h-full max-w-5xl max-h-[85vh] relative overflow-hidden border border-gray-800 shadow-xl">
+            {/* Demo shapes */}
             {activeTool === "rectangle" && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute top-20 left-20 w-32 h-24 bg-blue-400 rounded-md"
+                className="absolute top-20 left-20 w-32 h-24 bg-gradient-to-br from-pink-500/30 to-violet-500/30 rounded-lg backdrop-blur-[1px] border border-pink-500/20 shadow-lg"
                 drag
                 dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}
               />
@@ -221,149 +184,243 @@ function Home() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute top-32 right-20 w-24 h-24 bg-green-400 rounded-full"
+                className="absolute top-32 right-20 w-24 h-24 bg-gradient-to-br from-cyan-400/30 to-blue-500/30 rounded-full backdrop-blur-[1px] border border-cyan-400/20 shadow-lg"
                 drag
                 dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}
               />
             )}
+
+            {activeTool === "heart" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                drag
+                dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}
+              >
+                <Heart className="w-24 h-24 text-pink-500 drop-shadow-lg" />
+              </motion.div>
+            )}
           </div>
+
+          {/* Mobile properties toggle button */}
+          {isMobile && (
+            <button
+              onClick={() => setShowProperties(!showProperties)}
+              className="md:hidden absolute bottom-4 right-4 bg-gray-900/80 backdrop-blur-lg p-2 rounded-full border border-gray-700 shadow-lg z-10"
+            >
+              <Settings className="w-5 h-5 text-gray-300" />
+            </button>
+          )}
         </div>
 
-        {/* Properties Panel */}
-        <div className="w-64 bg-white shadow-md p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-700">Properties</h2>
-            <Settings className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fill Color
-              </label>
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded border border-gray-300 bg-red-500 mr-2 cursor-pointer"></div>
-                <input
-                  type="text"
-                  value="#EF4444"
-                  className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stroke
-              </label>
-              <div className="flex space-x-2">
-                <div className="w-8 h-8 rounded border border-gray-300 bg-black mr-2 cursor-pointer"></div>
-                <input
-                  type="number"
-                  value="2"
-                  className="border border-gray-300 rounded px-2 py-1 text-sm w-16"
-                />
-                <select className="border border-gray-300 rounded px-2 py-1 text-sm flex-1">
-                  <option>Solid</option>
-                  <option>Dashed</option>
-                  <option>Dotted</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Opacity
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value="100"
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold text-gray-700 flex items-center">
-                <Layers className="w-4 h-4 mr-1" /> Layers
+        {/* Properties Panel - Now bottom drawer on mobile */}
+        {(!isMobile || showProperties) && (
+          <div
+            className={`${
+              isMobile
+                ? "fixed inset-x-0 bottom-0 h-[40vh] overflow-y-auto border-t"
+                : "w-60 border-l"
+            } bg-gray-900/80 backdrop-blur-lg border-gray-800 p-4 flex flex-col`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-medium text-gray-200 text-sm uppercase tracking-wider">
+                Properties
               </h2>
-              <button className="text-xs text-blue-500 hover:text-blue-700">
-                Add
-              </button>
+              <Settings className="w-4 h-4 text-gray-400 hover:text-pink-400 cursor-pointer transition-colors" />
             </div>
 
-            <div className="space-y-1">
-              {layers.map((layer) => (
-                <div
-                  key={layer.id}
-                  className="flex items-center justify-between p-2 hover:bg-gray-100 rounded"
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="fillColor"
+                  className="block text-xs font-medium text-gray-400 mb-1"
                 >
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={layer.visible}
-                      onChange={() => {}}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{layer.name}</span>
-                  </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
+                  Fill
+                </label>
+                <div className="flex gap-2">
+                  <div className="w-7 h-7 rounded border border-gray-700 bg-gradient-to-br from-pink-500 to-violet-500 cursor-pointer shadow-inner" />
+                  <input
+                    id="fillColor"
+                    name="fillColor"
+                    type="text"
+                    value={formValues.fillColor}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-800 bg-gray-900 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-pink-500/30"
+                  />
                 </div>
-              ))}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="strokeWidth"
+                  className="block text-xs font-medium text-gray-400 mb-1"
+                >
+                  Stroke
+                </label>
+                <div className="flex gap-2">
+                  <div className="w-7 h-7 rounded border border-gray-700 bg-gray-200 cursor-pointer shadow-inner" />
+                  <input
+                    id="strokeWidth"
+                    name="strokeWidth"
+                    type="number"
+                    value={formValues.strokeWidth}
+                    onChange={handleInputChange}
+                    className="w-12 border border-gray-800 bg-gray-900 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-pink-500/30"
+                  />
+                  <select
+                    id="strokeStyle"
+                    name="strokeStyle"
+                    value={formValues.strokeStyle}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-800 bg-gray-900 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-pink-500/30"
+                  >
+                    <option>Solid</option>
+                    <option>Dashed</option>
+                    <option>Dotted</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="opacity"
+                  className="block text-xs font-medium text-gray-400 mb-1"
+                >
+                  Opacity
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="opacity"
+                    name="opacity"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={formValues.opacity}
+                    onChange={handleInputChange}
+                    className="flex-1 accent-pink-500"
+                  />
+                  <span className="text-xs text-gray-400 w-8 text-right">
+                    {formValues.opacity}%
+                  </span>
+                </div>
+              </div>
             </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-medium text-gray-200 text-sm uppercase tracking-wider flex items-center">
+                  <Layers className="w-4 h-4 mr-2 text-gray-400" /> Layers
+                </h2>
+                <button className="text-xs text-pink-400 hover:text-pink-300 transition-colors">
+                  + Add
+                </button>
+              </div>
+
+              <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                {layers.map((layer) => (
+                  <div
+                    key={layer.id}
+                    className="flex items-center justify-between p-2 hover:bg-gray-800/50 rounded transition-colors group"
+                  >
+                    <div className="flex items-center">
+                      <input
+                        id={`layer-visible-${layer.id}`}
+                        type="checkbox"
+                        checked={layer.visible}
+                        onChange={() => {
+                          const updatedLayers = layers.map((l) =>
+                            l.id === layer.id
+                              ? { ...l, visible: !l.visible }
+                              : l
+                          );
+                          setLayers(updatedLayers);
+                        }}
+                        className="mr-2 h-3 w-3 accent-pink-500"
+                      />
+                      <label
+                        htmlFor={`layer-visible-${layer.id}`}
+                        className="text-xs text-gray-300 cursor-pointer"
+                      >
+                        {layer.name}
+                      </label>
+                    </div>
+                    <button className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-300 transition-opacity">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Close button for mobile */}
+            {isMobile && (
+              <button
+                onClick={() => setShowProperties(false)}
+                className="md:hidden absolute top-2 right-2 text-gray-400 hover:text-pink-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Status Bar */}
-      <footer className="bg-white border-t border-gray-200 px-4 py-2 text-xs text-gray-500 flex justify-between">
+      <footer className="bg-gray-900/80 backdrop-blur-lg border-t border-gray-800 px-4 py-1.5 text-xs text-gray-400 flex justify-between">
         <div>Vector Crafts v1.0</div>
-        <div>Ready</div>
+        <div className="text-pink-400">Ready</div>
         <div>Zoom: 100%</div>
       </footer>
 
       {/* Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg p-6 w-full max-w-md"
+            className="bg-gray-900/90 backdrop-blur-lg rounded-xl p-5 w-full max-w-sm border border-gray-800 shadow-2xl"
           >
-            <h2 className="text-xl font-bold mb-4">Import Vector Graphic</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
-              <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-600">Drag and drop SVG files here</p>
-              <p className="text-gray-400 text-sm mt-1">or</p>
-              <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Browse Files
+            <h2 className="text-lg font-bold mb-3 text-gray-100">Import SVG</h2>
+            <div className="border-2 border-dashed border-gray-800 rounded-lg p-6 text-center mb-4 bg-gray-900/30">
+              <Upload className="w-10 h-10 mx-auto text-gray-500 mb-2" />
+              <p className="text-gray-400 text-sm">Drag and drop files here</p>
+              <button className="mt-3 px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg hover:opacity-90 transition-opacity text-sm">
+                Select Files
               </button>
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end gap-2">
               <button
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
                 onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 border border-gray-800 rounded-lg hover:bg-gray-800/50 text-gray-300 transition-colors text-sm"
               >
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg hover:opacity-90 transition-opacity text-sm">
                 Import
               </button>
             </div>

@@ -18,7 +18,7 @@ function Layout({ children }: LayoutProps) {
           <div className="hidden md:flex items-center justify-center">
             <Navbar />
           </div>
-        <main className="relative z-1 mt-[10%]">{children}</main>
+        <main className="relative z-1 -mt-12">{children}</main>
         <footer>
           <Footer />
         </footer>
