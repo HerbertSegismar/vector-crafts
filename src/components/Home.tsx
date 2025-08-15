@@ -4,7 +4,15 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import * as fabric from "fabric";
-import { FiCopy, FiSave, FiLayers, FiEye, FiEyeOff, FiLock, FiUnlock } from "react-icons/fi";
+import {
+  FiCopy,
+  FiSave,
+  FiLayers,
+  FiEye,
+  FiEyeOff,
+  FiLock,
+  FiUnlock,
+} from "react-icons/fi";
 import { HexColorPicker } from "react-colorful";
 
 // Import your icons
@@ -17,11 +25,51 @@ import Upload from "../icons/Upload";
 import Download from "../icons/Download";
 import PenTool from "../icons/PenTool";
 
+declare module "fabric" {
+  interface CanvasEvents {
+    "object:selected": (options: {
+      target: fabric.Object;
+      e: MouseEvent;
+    }) => void;
+  }
+}
+
+// types/fabric.d.ts
+declare module 'fabric' {
+  interface Object {
+    bringToFront(): void;
+    bringForward(): void;
+    sendBackwards(): void;
+    sendToBack(): void;
+    // Add other methods you need
+  }
+}
+
+interface CanvasLayer {
+  id: number;
+  name: string;
+  type: string;
+  visible: boolean;
+  locked: boolean;
+  object: fabric.Object | null; // Explicitly type the Fabric object
+}
+
+// types/canvas.d.ts
+export interface Layer {
+  id: number;
+  name: string;
+  type: 'svg' | 'rect' | 'circle' | 'text';
+  visible: boolean;
+  locked: boolean;
+  object: fabric.Object | null;
+}
 
 function Home() {
+
   gsap.registerPlugin(useGSAP);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
+  const [layers, setLayers] = useState<CanvasLayer[]>([]);
 
   // State management
   const [formValues, setFormValues] = useState({
@@ -47,60 +95,49 @@ function Home() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  const [layers, setLayers] = useState([
-    {
-      id: 1,
-      name: "Heart",
-      type: "heart",
-      visible: true,
-      locked: false,
-      object: null,
-    },
-    {
-      id: 2,
-      name: "Background",
-      type: "rectangle",
-      visible: true,
-      locked: false,
-      object: null,
-    },
-  ]);
+  
 
   const [showProperties, setShowProperties] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
+  const saveToHistory = () => {
+    if (fabricCanvasRef.current) {
+      const json = fabricCanvasRef.current.toJSON();
+      setHistory((prev) => [...prev, json]);
+    }
+  };
+
+
   // Initialize Fabric.js canvas
   useEffect(() => {
-  if (canvasRef.current) {
-    // Set higher resolution (e.g., 2x display size)
-    const scale = window.devicePixelRatio || 1;
-    canvasRef.current.width = 1200 * scale;
-    canvasRef.current.height = 800 * scale;
-
-    fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
-      backgroundColor: "#1f2937",
-      selectionColor: "rgba(236, 72, 153, 0.3)",
-      selectionBorderColor: "#EC4899",
-      selectionLineWidth: 2,
-      width: 1200, // Logical width
-      height: 800, // Logical height
-      enableRetinaScaling: true, // Enable retina/high-DPI support
-    });
+    if (canvasRef.current) {
+      fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
+        backgroundColor: "#1f2937",
+        selectionColor: "rgba(236, 72, 153, 0.3)",
+        selectionBorderColor: "#EC4899",
+        selectionLineWidth: 2,
+        width: 1200, // Logical width
+        height: 800, // Logical height
+        enableRetinaScaling: true, // Enable retina/high-DPI support
+      });
 
 
-      // Event listeners
+      
       fabricCanvasRef.current.on(
-        "object:selected",
-        (e: fabric.IEvent<MouseEvent>) => {
-          if (e.target) {
-            setSelectedObject(e.target);
+        "object:selected" as keyof fabric.CanvasEvents,
+        (
+          options: fabric.TPointerEventInfo<PointerEvent> & {
+            target: fabric.Object;
+          }
+        ) => {
+          if (options.target) {
+            setSelectedObject(options.target);
             setFormValues({
               ...formValues,
-              fillColor: (e.target.fill as string) || "#EC4899",
-              strokeColor: (e.target.stroke as string) || "#FFFFFF",
-              strokeWidth: e.target.strokeWidth?.toString() || "2",
-              opacity: ((e.target.opacity || 1) * 100).toString(),
+              fillColor: (options.target.fill as string) || "#EC4899",
+              strokeColor: (options.target.stroke as string) || "#FFFFFF",
+              strokeWidth: options.target.strokeWidth?.toString() || "2",
+              opacity: ((options.target.opacity || 1) * 100).toString(),
             });
           }
         }
@@ -119,14 +156,7 @@ function Home() {
       };
     }
   }, []);
-
-  const saveToHistory = () => {
-    if (!fabricCanvasRef.current) return;
-    const objects = fabricCanvasRef.current.getObjects();
-    setHistory([...history.slice(0, historyIndex + 1), objects]);
-    setHistoryIndex(historyIndex + 1);
-  };
-
+  
 
   const undo = () => {
     if (historyIndex <= 0 || !fabricCanvasRef.current) return;
@@ -155,7 +185,7 @@ function Home() {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
     return () => window.removeEventListener("resize", checkIfMobile);
@@ -296,30 +326,35 @@ function Home() {
   };
 
   const deleteSelected = () => {
-    if (fabricCanvasRef.current && fabricCanvasRef.current.getActiveObject()) {
-      fabricCanvasRef.current.remove(fabricCanvasRef.current.getActiveObject());
-      setSelectedObject(null);
-      saveToHistory();
+    if (fabricCanvasRef.current) {
+      const activeObject = fabricCanvasRef.current.getActiveObject();
+      if (activeObject) {
+        fabricCanvasRef.current.remove(activeObject);
+        setSelectedObject(null);
+        saveToHistory();
+      }
     }
   };
 
   const duplicateSelected = () => {
-    if (fabricCanvasRef.current && fabricCanvasRef.current.getActiveObject()) {
-      const activeObject = fabricCanvasRef.current.getActiveObject();
-      if (activeObject) {
-        activeObject.clone((cloned: fabric.Object) => {
-          cloned.set({
-            left: (cloned.left || 0) + 10,
-            top: (cloned.top || 0) + 10,
-          });
-          fabricCanvasRef.current?.add(cloned);
-          fabricCanvasRef.current?.setActiveObject(cloned);
-          setSelectedObject(cloned);
-          saveToHistory();
-        });
-      }
-    }
+    if (!fabricCanvasRef.current) return;
+
+    const activeObject = fabricCanvasRef.current.getActiveObject();
+    if (!activeObject) return;
+
+    // Type assertion approach
+    (activeObject as any).clone((cloned: fabric.Object) => {
+      cloned.set({
+        left: (cloned.left || 0) + 10,
+        top: (cloned.top || 0) + 10,
+      });
+      fabricCanvasRef.current?.add(cloned);
+      fabricCanvasRef.current?.setActiveObject(cloned);
+      setSelectedObject(cloned);
+      saveToHistory();
+    });
   };
+
 
   const exportAsImage = (format: "png" | "jpeg" | "svg") => {
     if (!fabricCanvasRef.current) return;
@@ -328,12 +363,14 @@ function Home() {
     switch (format) {
       case "png":
         dataUrl = fabricCanvasRef.current.toDataURL({
+          multiplier: 1, 
           format: "png",
           quality: 1,
         });
         break;
       case "jpeg":
         dataUrl = fabricCanvasRef.current.toDataURL({
+          multiplier: 1, 
           format: "jpeg",
           quality: 0.8,
         });
@@ -353,38 +390,49 @@ function Home() {
     if (!fabricCanvasRef.current) return;
 
     const reader = new FileReader();
+
     reader.onload = (e) => {
-      fabric.loadSVGFromString(
-        e.target?.result as string,
-        (objects, options) => {
-          const group = fabric.util.groupSVGElements(objects, options);
-          group.set({
-            left: fabricCanvasRef.current?.width
-              ? fabricCanvasRef.current.width / 2
-              : 200,
-            top: fabricCanvasRef.current?.height
-              ? fabricCanvasRef.current.height / 2
-              : 200,
-            selectable: true,
+      try {
+        const svgString = e.target?.result as string;
+        if (!svgString) throw new Error("Failed to read SVG file");
+
+        fabric.loadSVGFromString(svgString).then((result) => {
+          // Filter out null values to create a new array with only valid Fabric objects
+          const validObjects = result.objects.filter(
+            (obj) => obj !== null
+          ) as fabric.Object[];
+
+          // Now you can use validObjects, which is guaranteed to be of type fabric.Object[]
+          if (!fabricCanvasRef.current || !validObjects.length) return;
+
+          const group = new fabric.Group(validObjects, {
+            originX: "center",
+            originY: "center",
+            padding: 10,
+            subTargetCheck: true,
           });
-          fabricCanvasRef.current?.add(group);
-          fabricCanvasRef.current?.setActiveObject(group);
+
+          const canvas = fabricCanvasRef.current;
+          canvas.add(group);
+          canvas.viewportCenterObject(group);
+          canvas.setActiveObject(group);
+          canvas.requestRenderAll();
+
           setSelectedObject(group);
           saveToHistory();
+        });
 
-          // Add to layers
-          const newLayer = {
-            id: layers.length + 1,
-            name: `Imported SVG ${layers.length + 1}`,
-            type: "svg",
-            visible: true,
-            locked: false,
-            object: group,
-          };
-          setLayers([...layers, newLayer]);
-        }
-      );
+      } catch (error) {
+        console.error("Error importing SVG:", error);
+        // Handle error in UI
+      }
     };
+
+    reader.onerror = () => {
+      console.error("File reading error");
+      // Handle error in UI
+    };
+
     reader.readAsText(file);
   };
 
@@ -1375,7 +1423,7 @@ function Home() {
         )}
       </div>
     </div>
-  ); 
+  );
 }
 
 export default Home;
