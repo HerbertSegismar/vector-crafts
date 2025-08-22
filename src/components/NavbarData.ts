@@ -19,7 +19,11 @@ const NavbarData = [
     url: "/contact",
     text: "Contact",
   },
-  
+  {
+    id: 5,
+    url: "/red",
+    text: "Red",
+  },
 ];
 
 export default NavbarData
