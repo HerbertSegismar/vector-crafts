@@ -64,7 +64,6 @@ export interface Layer {
 }
 
 function Home() {
-
   gsap.registerPlugin(useGSAP);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
@@ -95,7 +94,6 @@ function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-
   const [showProperties, setShowProperties] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -106,10 +104,18 @@ function Home() {
     }
   };
 
-
   // Initialize Fabric.js canvas
   useEffect(() => {
     if (canvasRef.current) {
+      // Get device pixel ratio
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Set canvas size attributes
+      canvasRef.current.width = 1200 * dpr;
+      canvasRef.current.height = 800 * dpr;
+      canvasRef.current.style.width = '1200px';
+      canvasRef.current.style.height = '800px';
+
       fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
         backgroundColor: "#1f2937",
         selectionColor: "rgba(236, 72, 153, 0.3)",
@@ -120,6 +126,10 @@ function Home() {
         enableRetinaScaling: true, // Enable retina/high-DPI support
       });
 
+      // Set proper scaling for high DPI displays
+      const canvas = fabricCanvasRef.current;
+      canvas.setDimensions({ width: 1200, height: 800 });
+      
       fabricCanvasRef.current.on(
         "object:selected" as keyof fabric.CanvasEvents,
         (
@@ -153,7 +163,6 @@ function Home() {
       };
     }
   }, []);
-
 
   const undo = () => {
     if (historyIndex <= 0 || !fabricCanvasRef.current) return;
@@ -352,7 +361,6 @@ function Home() {
     });
   };
 
-
   const exportAsImage = (format: "png" | "jpeg" | "svg") => {
     if (!fabricCanvasRef.current) return;
 
@@ -360,16 +368,16 @@ function Home() {
     switch (format) {
       case "png":
         dataUrl = fabricCanvasRef.current.toDataURL({
-          multiplier: 1,
+          multiplier: 2, // Increased for better quality
           format: "png",
           quality: 1,
         });
         break;
       case "jpeg":
         dataUrl = fabricCanvasRef.current.toDataURL({
-          multiplier: 1,
+          multiplier: 2, // Increased for better quality
           format: "jpeg",
-          quality: 0.8,
+          quality: 0.9,
         });
         break;
       case "svg":
@@ -418,7 +426,6 @@ function Home() {
           setSelectedObject(group);
           saveToHistory();
         });
-
       } catch (error) {
         console.error("Error importing SVG:", error);
         // Handle error in UI
@@ -772,11 +779,17 @@ function Home() {
           onMouseUp={handleCanvasMouseUp}
           onMouseLeave={handleCanvasMouseUp}
         >
-          <canvas
-            ref={canvasRef}
-            id="fabric-canvas"
-            className="bg-gray-900/50 backdrop-blur-sm rounded-xl w-full h-full max-w-5xl max-h-[85vh] border border-gray-800 shadow-xl"
-          />
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              id="fabric-canvas"
+              className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 shadow-xl"
+              style={{
+                width: "1200px",
+                height: "800px",
+              }}
+            />
+          </div>
 
           {/* Zoom controls */}
           <div className="absolute bottom-4 left-4 bg-gray-900/80 backdrop-blur-lg p-2 rounded-lg border border-gray-700 shadow-lg z-10">
@@ -1263,7 +1276,7 @@ function Home() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                  >
+                >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
