@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -35,7 +34,7 @@ declare module "fabric" {
 }
 
 // types/fabric.d.ts
-declare module 'fabric' {
+declare module "fabric" {
   interface Object {
     bringToFront(): void;
     bringForward(): void;
@@ -58,7 +57,7 @@ interface CanvasLayer {
 export interface Layer {
   id: number;
   name: string;
-  type: 'svg' | 'rect' | 'circle' | 'text';
+  type: "svg" | "rect" | "circle" | "text";
   visible: boolean;
   locked: boolean;
   object: fabric.Object | null;
@@ -95,7 +94,7 @@ function Home() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
+
 
   const [showProperties, setShowProperties] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -121,8 +120,6 @@ function Home() {
         enableRetinaScaling: true, // Enable retina/high-DPI support
       });
 
-
-      
       fabricCanvasRef.current.on(
         "object:selected" as keyof fabric.CanvasEvents,
         (
@@ -134,7 +131,7 @@ function Home() {
             setSelectedObject(options.target);
             setFormValues({
               ...formValues,
-              fillColor: (options.target.fill as string) || "#EC4899",
+              fillColor: (options.target.fill as string) || "#48ec8aff",
               strokeColor: (options.target.stroke as string) || "#FFFFFF",
               strokeWidth: options.target.strokeWidth?.toString() || "2",
               opacity: ((options.target.opacity || 1) * 100).toString(),
@@ -156,7 +153,7 @@ function Home() {
       };
     }
   }, []);
-  
+
 
   const undo = () => {
     if (historyIndex <= 0 || !fabricCanvasRef.current) return;
@@ -363,14 +360,14 @@ function Home() {
     switch (format) {
       case "png":
         dataUrl = fabricCanvasRef.current.toDataURL({
-          multiplier: 1, 
+          multiplier: 1,
           format: "png",
           quality: 1,
         });
         break;
       case "jpeg":
         dataUrl = fabricCanvasRef.current.toDataURL({
-          multiplier: 1, 
+          multiplier: 1,
           format: "jpeg",
           quality: 0.8,
         });

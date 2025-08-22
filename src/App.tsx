@@ -11,6 +11,7 @@ import Contact from "./components/Contact";
 import About from "./components/About";
 import Layout from "./Layout"
 import NotFound from "./components/NotFound";
+import RedVelvet from "./components/RedVelvet";
 
 const App = () => {
   const router = createBrowserRouter(
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="projects" element={<Projects />} />
         <Route path="contact" element={<Contact />} />
         <Route path="about" element={<About />} />
+        <Route path="red" element={<RedVelvet />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     )
